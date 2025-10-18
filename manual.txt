@@ -1,0 +1,288 @@
+# DEPENDENCIES: UBUNTU 24, ROS2 JAZZY, GAZEBO HARMONIC
+
+# 1.DOWNLOAD ROS2 JAZZY, GAZEBO HARMONIC
+
+####################################################################################################
+
+# 2.CREATE WORKSPACE
+
+cd ~/
+mkdir -p ~/prestobot_ws/src
+cd ~/prestobot_ws/
+colcon build
+source install/setup.bash
+code .
+####################################################################################################
+
+# 3.CREATE description PACKAGE
+
+cd ~/prestobot_ws/src/
+ros2 pkg create prestobot_description --build-type ament_cmake
+
+cd ~/prestobot_ws/src/prestobot_description/
+rm -rf include/ src/
+mkdir launch rviz urdf
+
+cd ~/prestobot_ws/src/prestobot_description/urdf/
+touch common_properties.xacro
+touch prestobot.parts.xacro
+touch prestobot.ros2_control.xacro
+touch prestobot.gazebo.xacro
+touch prestobot.urdf.xacro
+
+cd ~/prestobot_ws/src/prestobot_description/launch/
+touch display.launch.xml
+touch robot_description.launch.xml
+
+### --- CMakeLists.txt ---###
+install(
+  DIRECTORY launch rviz urdf
+  DESTINATION share/${PROJECT_NAME}/
+)
+#############################
+
+cd ~/prestobot_ws/
+colcon build
+source install/setup.bash
+####################################################################################################
+
+# 4.CREATE controller PACKAGE
+
+cd ~/prestobot_ws/src/
+ros2 pkg create prestobot_controller --build-type ament_cmake
+
+cd ~/prestobot_ws/src/prestobot_controller/
+rm -rf include/ src/
+mkdir config launch
+
+cd ~/prestobot_ws/src/prestobot_controller/config/
+touch prestobot_controller.yaml
+cd ~/prestobot_ws/src/prestobot_controller/launch/
+touch ros2_control.launch.py
+
+### --- CMakeLists.txt ---###
+install(
+  DIRECTORY config launch
+  DESTINATION share/${PROJECT_NAME}/
+)
+#############################
+
+### --- package.xml ---###
+  <exec_depend>robot_state_publisher</exec_depend>
+  <exec_depend>controller_manager</exec_depend>
+  <exec_depend>prestobot_description</exec_depend>
+  <exec_depend>rviz2</exec_depend>
+##########################
+
+cd ~/prestobot_ws/
+colcon build
+source install/setup.bash
+####################################################################################################
+
+# 5.CREATE simulation PACKAGE
+
+cd ~/prestobot_ws/src/
+ros2 pkg create prestobot_simulation --build-type ament_cmake
+
+cd ~/prestobot_ws/src/prestobot_simulation/
+rm -rf include/ src/
+mkdir config launch worlds
+
+cd ~/prestobot_ws/src/prestobot_simulation/config/
+touch gazebo_bridge.yaml
+cd ~/prestobot_ws/src/prestobot_simulation/launch/
+touch display.launch.xml
+touch gazebo.launch.xml
+
+### --- CMakeLists.txt ---###
+
+install(
+  DIRECTORY config launch worlds
+  DESTINATION share/${PROJECT_NAME}/
+)
+#############################
+
+### --- package.xml ---###
+  <exec_depend>robot_state_publisher</exec_depend>
+  <exec_depend>ros_gz_sim</exec_depend>
+  <exec_depend>ros_gz_bridge</exec_depend>
+  <exec_depend>controller_manager</exec_depend>
+  <exec_depend>prestobot_description</exec_depend>
+  <exec_depend>rviz2</exec_depend>
+##########################
+
+cd ~/prestobot_ws/
+colcon build
+source install/setup.bash
+####################################################################################################
+
+# 6.CREATE py_pkg PACKAGE
+
+cd ~/prestobot_ws/src/
+ros2 pkg create prestobot_py_pkg --build-type ament_python
+
+cd ~/prestobot_ws/src/prestobot_py_pkg/prestobot_py_pkg/
+touch set_initial_pose.py
+chmod +x set_initial_pose.py
+touch hmi.py
+chmod +x hmi.py
+
+### --- package.xml ---###
+  <depend>rclpy</depend>
+  <depend>nav2_simple_commander</depend>
+  <depend>geometry_msgs</depend>
+  <depend>tf_transformations</depend>
+  <depend>pygame</depend>
+##########################
+
+### --- setup.py --- ###
+    entry_points={
+        'console_scripts': [
+            "set_initial_pose = prestobot_py_pkg.set_initial_pose:main",
+            "hmi = prestobot_py_pkg.hmi:main"
+        ],
+    },
+########################
+
+cd ~/
+sudo apt install python3-pygame
+
+cd ~/prestobot_ws/
+colcon build
+source install/setup.bash
+####################################################################################################
+
+# 7. CREATE navigation PACKAGE
+
+cd ~/prestobot_ws/src/
+ros2 pkg create prestobot_navigation --build-type ament_cmake
+
+cd ~/prestobot_ws/src/prestobot_navigation/
+rm -rf include/ src/
+mkdir config launch maps rviz
+
+cd ~/prestobot_ws/src/prestobot_navigation/config/
+touch prestobot_navigation.yaml
+cd ~/prestobot_ws/src/prestobot_navigation/launch/
+touch display.launch.xml
+touch navigation.launch.xml
+
+### --- CMakeLists.txt ---###
+install(
+  DIRECTORY config launch maps rviz
+  DESTINATION share/${PROJECT_NAME}
+)
+#############################
+
+### --- package.xml ---###
+  <exec_depend>nav2_bringup</exec_depend>
+  <exec_depend>prestobot_py_pkg</exec_depend>
+  <exec_depend>prestobot_simulation</exec_depend>
+##########################
+
+cd ~/prestobot_ws/
+colcon build
+source install/setup.bash
+####################################################################################################
+
+# 8. CREATE bringup PACKAGE
+
+cd ~/prestobot_ws/src/
+ros2 pkg create prestobot_bringup --build-type ament_cmake
+
+cd ~/prestobot_ws/src/prestobot_bringup/
+rm -rf include/ src/
+mkdir launch
+
+cd ~/prestobot_ws/src/prestobot_bringup/launch/
+touch bringup.launch.xml
+touch prestobot.launch.py
+touch operator.launch.py
+
+### --- CMakeLists.txt ---###
+install(
+  DIRECTORY launch
+  DESTINATION share/${PROJECT_NAME}
+)
+#############################
+
+### --- package.xml ---###
+  <exec_depend>prestobot_simulation</exec_depend>
+  <exec_depend>prestobot_navigation</exec_depend>
+  <exec_depend>prestobot_py_pkg</exec_depend>
+##########################
+
+cd ~/prestobot_ws/
+colcon build
+source install/setup.bash
+####################################################################################################
+
+# 9. CLI COMMAND
+
+sudo usermod -a -G dialout $USER
+
+### --- install pygame --- ###
+sudo apt install python3-pygame
+
+### --- install dependencies --- ###
+cd ~/prestobot_ws/
+rosdep install --from-paths src --ignore-src -i -y
+colcon build
+source install/setup.bash
+
+### --- urdf test --- ###
+cd ~/prestobot_ws/
+colcon build
+source install/setup.bash
+ros2 launch prestobot_description display.launch.xml
+
+### --- simulation test --- ###
+cd ~/prestobot_ws/
+colcon build
+source install/setup.bash
+ros2 launch prestobot_simulation display.launch.xml
+
+ros2 run teleop_twist_keyboard teleop_twist_keyboard --ros-args -r /cmd_vel:=/diff_drive_controller/cmd_vel -p stamped:=true
+
+### --- navigation test --- ###
+cd ~/prestobot_ws/
+colcon build
+source install/setup.bash
+ros2 launch prestobot_navigation display.launch.xml
+
+### --- prestobot test --- ###
+cd ~/prestobot_ws/
+colcon build
+source install/setup.bash
+ros2 launch prestobot_bringup bringup.launch.xml
+####################################################################################################
+
+# 10. REFERENCES
+
+https://docs.ros.org/en/jazzy/index.html
+https://docs.nav2.org/
+https://google-cartographer-ros.readthedocs.io/en/latest/
+
+https://control.ros.org/jazzy/index.html
+https://github.com/ros-controls
+https://github.com/ros-controls/ros2_control
+https://github.com/ros-controls/ros2_controllers
+https://github.com/ros-controls/gz_ros2_control
+
+https://gazebosim.org/docs/harmonic/getstarted/
+https://github.com/gazebosim
+https://github.com/gazebosim/ros_gz/tree/ros2
+https://github.com/gazebosim/ros_gz/blob/ros2/ros_gz_bridge/README.md
+
+https://github.com/ROBOTIS-GIT/turtlebot3
+https://github.com/ROBOTIS-GIT/turtlebot3_simulations
+
+https://learnbydoing.dev/
+https://github.com/AntoBrandi/Bumper-Bot
+
+https://roboticsbackend.com/
+https://github.com/PacktPublishing/ROS-2-from-Scratch
+
+https://www.youtube.com/dunglailaptrinh
+https://dunglailaptrinh.notion.site/D-ng-L-i-L-p-Tr-nh-Official-Website-2148dcd9ff9f4af78e47873faa6ef2cb
+####################################################################################################
