@@ -13,13 +13,14 @@ class HmiNode(Node):
         # Pygame Initialization
         pygame.init()
         self.screen_ = pygame.display.set_mode((1200, 700))
-        pygame.display.set_caption('Prestobot HMI - Custom Button Layout')
+        pygame.display.set_caption('Prestobot HMI - Custom Button Layout with Hallways')
 
         # Colors and Font
         self.WHITE_ = (255, 255, 255)
         self.BLACK_ = (0, 0, 0)
         self.BLUE_ = (173, 216, 230)
         self.GREEN_ = (144, 238, 144)
+        self.GRAY_ = (200, 200, 200) # Color for hallways
         self.font1_ = pygame.font.SysFont('sans', 25)
 
         # Navigation Setup
@@ -94,69 +95,25 @@ class HmiNode(Node):
             (8.0, 27.4, 0.0)  #47
         ]
 
-        # ===============================================================================
-        # == 1. DEFINE YOUR CUSTOM BUTTON POSITIONS HERE ==
-        # ===============================================================================
-        # Format: (room_label, (x_coordinate, y_coordinate))
-        # self.room_button_positions = [
-        #     (1, (100, 150)), (2, (200, 150)), (3, (300, 150)),
-        #     (4, (100, 220)), (5, (200, 220)), (6, (300, 220)),
-        #     # Add all your other room buttons with their custom (x, y) positions
-        #     # For example:
-        #     (14, (400, 150)),
-        #     (15, (500, 220)),
-        #     # ... and so on for all 46 rooms
-        # ]
+        # Custom Button Positions
         self.room_button_positions = [
-            (1, (1080, 620)),
-            (2, (1000, 620)),
-            (3, (920, 620)),
-            (4, (840, 620)),
-            (5, (760, 620)),
-            (6, (680, 620)),
-            (7, (600, 620)),
-            (8, (520, 620)),
-            (9, (440, 620)),
-            (10, (360, 620)),
-            (11, (280, 620)),
-            (12, (200, 620)),
-            # Skipping Room 13
-            (14, (120, 620)),
-            (15, (120, 500)),
-            (16, (120, 440)),
-            (17, (120, 380)),
-            (18, (120, 320)),
-            (19, (120, 260)),
-            (20, (120, 200)),
-            (21, (120, 140)),
-            (22, (120, 80)),
-            (23, (1080, 80)),
-            (24, (1000, 80)),
-            (25, (920, 80)),
-            (26, (840, 80)),
-            (27, (760, 80)),
-            (28, (680, 80)),
-            (29, (600, 80)),
-            (30, (520, 80)),
-            (31, (440, 80)),
-            (32, (360, 80)),
-            (33, (280, 80)),
-            (34, (520, 500)),
-            (35, (600, 500)),
-            (36, (680, 500)),
-            (37, (760, 500)),
-            (38, (840, 500)),
-            (39, (920, 500)),
-            (40, (1000, 500)),
-            (41, (1080, 500)),
-            (42, (280, 500)),
-            (43, (280, 440)),
-            (44, (280, 380)),
-            (45, (280, 320)),
-            (46, (280, 260)),
+            (1, (1080, 620)), (2, (1000, 620)), (3, (920, 620)),
+            (4, (840, 620)), (5, (760, 620)), (6, (680, 620)),
+            (7, (600, 620)), (8, (520, 620)), (9, (440, 620)),
+            (10, (360, 620)), (11, (280, 620)), (12, (200, 620)),
+            (14, (120, 620)), (15, (120, 500)), (16, (120, 440)),
+            (17, (120, 380)), (18, (120, 320)), (19, (120, 260)),
+            (20, (120, 200)), (21, (120, 140)), (22, (120, 80)),
+            (23, (1080, 140)), (24, (1000, 140)), (25, (920, 140)),
+            (26, (840, 140)), (27, (760, 140)), (28, (680, 140)),
+            (29, (600, 140)), (30, (520, 140)), (31, (440, 140)),
+            (32, (360, 140)), (33, (280, 140)), (34, (520, 500)),
+            (35, (600, 500)), (36, (680, 500)), (37, (760, 500)),
+            (38, (840, 500)), (39, (920, 500)), (40, (1000, 500)),
+            (41, (1080, 500)), (42, (280, 500)), (43, (280, 440)),
+            (44, (280, 380)), (45, (280, 320)), (46, (280, 260)),
             (47, (280, 200))
         ]
-        # ===============================================================================
 
         self.buttons_ = []
         self.generate_buttons()
@@ -164,39 +121,27 @@ class HmiNode(Node):
         self.get_logger().info("HMI with custom button layout has been started.")
 
     def generate_buttons(self):
-        # --- Create and add the Home button ---
+        # Create and add the Home button
         home_pose = self.create_pose_stamped(0.0, 0.0, 0.0)
         home_text = self.font1_.render('Home', True, self.BLACK_)
         home_rect = pygame.Rect(50, 555, 120, 60)
         self.buttons_.append({
-            'text': home_text,
-            'rect': home_rect,
-            'pose': home_pose,
-            'label': 'Home',
-            'color': self.GREEN_
+            'text': home_text, 'rect': home_rect, 'pose': home_pose,
+            'label': 'Home', 'color': self.GREEN_
         })
 
-        # --- Create and add the Room buttons with custom positions ---
+        # Create and add the Room buttons with custom positions
         button_width, button_height = 80, 50
         room_coords_iter = iter(self.room_coordinates)
-
         for room_label, pos in self.room_button_positions:
             x_pos, y_pos = pos
-            
-            # This logic assumes room_button_positions labels match the order of room_coordinates
-            # It correctly skips room 13 if your room_button_positions list also skips it.
             coords = next(room_coords_iter)
-            
             text_surface = self.font1_.render(str(room_label), True, self.BLACK_)
             button_rect = pygame.Rect(x_pos, y_pos, button_width, button_height)
             goal_pose = self.create_pose_stamped(*coords)
-
             self.buttons_.append({
-                'text': text_surface,
-                'rect': button_rect,
-                'pose': goal_pose,
-                'label': f'Room {room_label}',
-                'color': self.BLUE_
+                'text': text_surface, 'rect': button_rect, 'pose': goal_pose,
+                'label': f'Room {room_label}', 'color': self.BLUE_
             })
 
     def get_hall_for_room(self, room_label):
@@ -220,10 +165,8 @@ class HmiNode(Node):
         self.get_logger().info(f"Request: Current Hall={self.current_hall_}, Destination='{destination_label}' in Hall={destination_hall}")
 
         if self.current_hall_ == destination_hall:
-            self.get_logger().info("Same hall. Navigating directly.")
             self.navigator_.goToPose(destination_pose)
         else:
-            self.get_logger().info("Different hall. Planning path with intermediates.")
             waypoints = []
             if (self.current_hall_, destination_hall) in [(1, 2), (2, 1)]:
                 waypoints.append(self.intermediate_poses_['hall_1_2'])
@@ -235,13 +178,26 @@ class HmiNode(Node):
                 waypoints.extend([self.intermediate_poses_['hall_2_3'], self.intermediate_poses_['hall_1_2']])
 
             waypoints.append(destination_pose)
-            self.get_logger().info(f"Sending {len(waypoints)} waypoints to Nav2.")
             self.navigator_.followWaypoints(waypoints)
-
         self.current_hall_ = destination_hall
 
     def update(self):
         self.screen_.fill(self.WHITE_)
+
+        # Draw hallway lines
+        line_width = 50
+        # Hallway connecting rooms 14 through 1 (bottom)
+        pygame.draw.line(self.screen_, self.GRAY_, (180, 585), (1160, 585), line_width)
+        # Hallway connecting rooms 14 through 22 (left side)
+        pygame.draw.line(self.screen_, self.GRAY_, (240, 80), (240, 560), line_width)
+        # Hallway connecting rooms 22 through 23 (top)
+        pygame.draw.line(self.screen_, self.GRAY_, (215, 105), (1160, 105), line_width)
+        # # Hallway for rooms 42 through 47
+        # pygame.draw.line(self.screen_, self.GRAY_, (320, 525), (320, 225), line_width)
+        # # Hallway for rooms 34 through 41
+        # pygame.draw.line(self.screen_, self.GRAY_, (560, 525), (1120, 525), line_width)
+
+        # Draw buttons and handle events
         mouse_pos = pygame.mouse.get_pos()
         for button in self.buttons_:
             pygame.draw.rect(self.screen_, button['color'], button['rect'])
