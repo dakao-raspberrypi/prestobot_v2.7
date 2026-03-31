@@ -26,7 +26,7 @@
     </include>
 
     <!-- Launch robot controllers -->
-    <include file="$(find-pkg-share prestobot_controller)/launch/controller.launch.py" />
+    <include file="$(find-pkg-share prestobot_controller)/launch/controller.launch.xml" />
 
     <!-- Launch nav2 localization -->
     <include file="$(find-pkg-share nav2_bringup)/launch/navigation_launch.py" >
