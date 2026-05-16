@@ -2,6 +2,8 @@
 
 # 1.DOWNLOAD ROS2 JAZZY, GAZEBO HARMONIC
 
+sudo apt install ros-jazzy-gz-ros2-control
+
 ####################################################################################################
 
 # 2.CREATE WORKSPACE
