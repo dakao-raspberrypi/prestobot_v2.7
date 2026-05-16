@@ -3,6 +3,7 @@
 # 1.DOWNLOAD ROS2 JAZZY, GAZEBO HARMONIC
 
 sudo apt install ros-jazzy-gz-ros2-control
+sudo apt install python3-pygame
 
 ####################################################################################################
 
